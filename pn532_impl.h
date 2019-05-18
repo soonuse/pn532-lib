@@ -1,0 +1,42 @@
+/**************************************************************************
+ *  @file     pn532_impl.h
+ *  @author   Yehui from Waveshare
+ *  @license  BSD
+ *  
+ *  Header file for pn532_impl.c
+ *  
+ *  Check out the links above for our tutorials and wiring diagrams 
+ *  These chips use SPI communicate.
+ *  
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documnetation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to  whom the Software is
+ * furished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS OR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ **************************************************************************/
+
+#ifndef PN532_IMPL
+#define PN532_IMPL
+
+#include "pn532.h"
+
+void pn532_init(PN532* pn532);
+void pn532_reset(void);
+void pn532_read_data(uint8_t* data, uint16_t count, uint32_t timeout);
+void pn532_write_data(uint8_t *data, uint16_t count, uint32_t timeout);
+bool pn532_wait_ready(uint32_t timeout);
+void pn532_wakeup(void);
+
+#endif  /* PN532_IMPL */
