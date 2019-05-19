@@ -27,7 +27,6 @@
  * THE SOFTWARE.
  **************************************************************************/
 
-#include <string.h>
 #include <stdio.h>
 #include "pn532.h"
 
@@ -147,9 +146,11 @@ int PN532_CallFunction(PN532* pn532, uint8_t command, uint8_t* response, uint16_
     }
     // Verify ACK response and wait to be ready for function response.
     pn532->read_data(buff, sizeof(PN532_ACK));
-    if (memcmp(PN532_ACK, buff, sizeof(PN532_ACK)) != 0) {
-        printf("Did not receive expected ACK from PN532!\r\n");
-        return PN532_STATUS_ERROR;
+    for (uint8_t i = 0; i < sizeof(PN532_ACK); i++) {
+        if (PN532_ACK[i] != buff[i]) {
+            printf("Did not receive expected ACK from PN532!\r\n");
+            return PN532_STATUS_ERROR;
+        }
     }
     if (!pn532->wait_ready(timeout)) {
         return PN532_STATUS_ERROR;
