@@ -36,10 +36,42 @@
 #define _SPI_DATAREAD                   0x03
 #define _SPI_READY                      0x01
 
+#define _SPI_TIMEOUT                    10
+// This indicates if the bits read/write should be reversed
+#define _SPI_HARDWARE_LSB
+
 extern SPI_HandleTypeDef hspi1;
 
 
-void pn532_reset(void) {
+uint8_t reverse_bit(uint8_t num) {
+    uint8_t result = 0;
+    for (uint8_t i = 0; i < 8; i++) {
+        result <<= 1;
+        result += (num & 1);
+        num >>= 1;
+    }
+    return result;
+}
+
+void spi_rw(uint8_t* data, uint8_t count) {
+    HAL_GPIO_WritePin(SS_GPIO_Port, SS_Pin, GPIO_PIN_RESET);
+    HAL_Delay(1);
+#ifndef _SPI_HARDWARE_LSB
+    for (uint8_t i = 0; i < count; i++) {
+        data[i] = reverse_bit(data[i]);
+    }
+    HAL_SPI_TransmitReceive(&hspi1, data, data, count, _SPI_TIMEOUT);
+    for (uint8_t i = 0; i < count; i++) {
+        data[i] = reverse_bit(data[i]);
+    }
+#else
+    HAL_SPI_TransmitReceive(&hspi1, data, data, count, _SPI_TIMEOUT);
+#endif
+    HAL_Delay(1);
+    HAL_GPIO_WritePin(SS_GPIO_Port, SS_Pin, GPIO_PIN_SET);
+}
+
+int PN532_Reset(void) {
     // TODO: in most cases, reset pin is no need for SPI
     /*
     HAL_GPIO_WritePin(RSTPD_N_GPIO_Port, RSTPD_N_Pin, GPIO_PIN_SET);
@@ -49,27 +81,37 @@ void pn532_reset(void) {
     HAL_GPIO_WritePin(RSTPD_N_GPIO_Port, RSTPD_N_Pin, GPIO_PIN_SET);
     HAL_Delay(100);
     */
+   return 0;
 }
 
-void pn532_read_data(uint8_t* data, uint16_t count, uint32_t timeout) {
-    HAL_GPIO_WritePin(SS_GPIO_Port, SS_Pin, GPIO_PIN_RESET);
-    HAL_SPI_Receive(&hspi1, data, count, timeout);
-    HAL_GPIO_WritePin(SS_GPIO_Port, SS_Pin, GPIO_PIN_SET);
+int PN532_ReadData(uint8_t* data, uint16_t count) {
+    uint8_t frame[count + 1];
+    frame[0] = _SPI_DATAREAD;
+    HAL_Delay(20);
+    spi_rw(frame, count + 1);
+    for (uint8_t i = 0; i < count; i++) {
+        data[i] = frame[i + 1];
+    }
+    return 0;
 }
 
-void pn532_write_data(uint8_t *data, uint16_t count, uint32_t timeout) {
-    HAL_GPIO_WritePin(SS_GPIO_Port, SS_Pin, GPIO_PIN_RESET);
-    HAL_SPI_Transmit(&hspi1, data, count, timeout);
-    HAL_GPIO_WritePin(SS_GPIO_Port, SS_Pin, GPIO_PIN_SET);
+int PN532_WriteData(uint8_t *data, uint16_t count) {
+    uint8_t frame[count + 1];
+    frame[0] = _SPI_DATAWRITE;
+    for (uint8_t i = 0; i < count; i++) {
+        frame[i + 1] = data[i];
+    }
+    spi_rw(frame, count + 1);
+    return 0;
 }
 
-bool pn532_wait_ready(uint32_t timeout) {
+bool PN532_WaitReady(uint32_t timeout) {
     uint8_t status[] = {_SPI_STATREAD, 0x00};
     uint32_t tickstart = HAL_GetTick();
     while (HAL_GetTick() - tickstart < timeout) {
         HAL_Delay(20);
-        HAL_SPI_Receive(&hspi1, status, sizeof(status), timeout);
-        if (status[1] == 0x01) {
+        spi_rw(status, sizeof(status));
+        if (status[1] == _SPI_READY) {
             return true;
         } else {
             HAL_Delay(10);
@@ -78,9 +120,23 @@ bool pn532_wait_ready(uint32_t timeout) {
     return false;
 }
 
-void pn532_wakeup(void) {
+int PN532_Wakeup(void) {
     // Send any special commands/data to wake up PN532
+    uint8_t data[] = {0x00};
     HAL_Delay(1000);
-    HAL_SPI_Transmit(&hspi1, (uint8_t*){0x00}, 1, 0);
+    spi_rw(data, 1);
     HAL_Delay(1000);
+    return 0;
+}
+
+void PN532_Init(PN532* pn532) {
+    // init the pn532 functions
+    pn532->reset =  PN532_Reset;
+    pn532->read_data = PN532_ReadData;
+    pn532->write_data = PN532_WriteData;
+    pn532->wait_ready = PN532_WaitReady;
+    pn532->wakeup = PN532_Wakeup;
+
+    // hardware wakeup
+    pn532->wakeup();
 }

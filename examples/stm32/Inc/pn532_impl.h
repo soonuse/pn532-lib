@@ -32,11 +32,11 @@
 
 #include "pn532.h"
 
-void pn532_init(PN532* pn532);
-void pn532_reset(void);
-void pn532_read_data(uint8_t* data, uint16_t count, uint32_t timeout);
-void pn532_write_data(uint8_t *data, uint16_t count, uint32_t timeout);
-bool pn532_wait_ready(uint32_t timeout);
-void pn532_wakeup(void);
+void PN532_Init(PN532* dev);
+int PN532_Reset(void);
+int PN532_ReadData(uint8_t* data, uint16_t count);
+int PN532_WriteData(uint8_t *data, uint16_t count);
+bool PN532_WaitReady(uint32_t timeout);
+int PN532_Wakeup(void);
 
 #endif  /* PN532_IMPL */
