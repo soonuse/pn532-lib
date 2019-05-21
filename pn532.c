@@ -314,11 +314,11 @@ int PN532_MifareClassicReadBlock(PN532* pn532, uint8_t* response, uint16_t block
 /* @brief: Write a block of data to the card.  Block number should be the block
  *     to write and data should be a byte array of length 16 with the data to
  *     write.
- * @param block_number: specify a block to write.
  * @param data: data to write.
+ * @param block_number: specify a block to write.
  * @retval: PN532 error code.
  */
-int PN532_MifareClassicWriteBlock(PN532* pn532, uint16_t block_number, uint8_t* data) {
+int PN532_MifareClassicWriteBlock(PN532* pn532, uint8_t* data, uint16_t block_number) {
     uint8_t params[19];
     uint8_t response[1];
     params[0] = 0x01;  // Max card numbers

@@ -1,5 +1,5 @@
 /**************************************************************************
- *  @file     pn532_impl.c
+ *  @file     pn532_stm32f1.c
  *  @author   Yehui from Waveshare
  *  @license  BSD
  *  
@@ -29,7 +29,7 @@
 
 #include "stm32f1xx_hal.h"
 #include "main.h"
-#include "pn532_impl.h"
+#include "pn532_stm32f1.h"
 
 #define _SPI_STATREAD                   0x02
 #define _SPI_DATAWRITE                  0x01

@@ -1,9 +1,9 @@
 /**************************************************************************
- *  @file     pn532_impl.h
+ *  @file     pn532_stm32f1.h
  *  @author   Yehui from Waveshare
  *  @license  BSD
  *  
- *  Header file for pn532_impl.c
+ *  Header file for pn532_stm32f1.c
  *  
  *  Check out the links above for our tutorials and wiring diagrams 
  *  These chips use SPI communicate.
@@ -27,8 +27,8 @@
  * THE SOFTWARE.
  **************************************************************************/
 
-#ifndef PN532_IMPL
-#define PN532_IMPL
+#ifndef PN532_STM32F1
+#define PN532_STM32F1
 
 #include "pn532.h"
 
@@ -40,4 +40,4 @@ bool PN532_WaitReady(uint32_t timeout);
 int PN532_Wakeup(void);
 void PN532_Log(const char* log);
 
-#endif  /* PN532_IMPL */
+#endif  /* PN532_STM32F1 */

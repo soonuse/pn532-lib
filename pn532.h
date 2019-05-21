@@ -256,7 +256,7 @@ int PN532_SamConfiguration(PN532* pn532);
 int PN532_ReadPassiveTarget(PN532* pn532, uint8_t* response, uint8_t card_baud, uint32_t timeout);
 int PN532_MifareClassicAuthenticateBlock(PN532* pn532, uint8_t* uid, uint8_t uid_length, uint16_t block_number, uint16_t key_number, uint8_t* key);
 int PN532_MifareClassicReadBlock(PN532* pn532, uint8_t* response, uint16_t block_number);
-int PN532_MifareClassicWriteBlock(PN532* pn532, uint16_t block_number, uint8_t* data);
+int PN532_MifareClassicWriteBlock(PN532* pn532, uint8_t* data, uint16_t block_number);
 
 #ifdef __cplusplus
 }
