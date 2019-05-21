@@ -136,7 +136,7 @@ void PN532_RPi_Init(PN532* pn532) {
     if (wiringPiSetupGpio() < 0) {  // using Broadcom GPIO pin mapping
         return;
     }
-    wiringPiSPISetup (_SPI_CHANNEL, 115200) ;
+    wiringPiSPISetup(_SPI_CHANNEL, 11520) ;
     // hardware wakeup
     pn532->wakeup();
 }
