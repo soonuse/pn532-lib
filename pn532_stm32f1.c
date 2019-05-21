@@ -3,10 +3,7 @@
  *  @author   Yehui from Waveshare
  *  @license  BSD
  *  
- *  This implements the device interface, e.g. SPI, I2C, UART ...
- *  
- *  Check out the links above for our tutorials and wiring diagrams 
- *  These chips use SPI communicate.
+ *  This implements the peripheral interfaces.
  *  
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documnetation files (the "Software"), to deal
