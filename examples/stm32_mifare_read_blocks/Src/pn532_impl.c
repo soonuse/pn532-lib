@@ -81,7 +81,7 @@ int PN532_Reset(void) {
     HAL_GPIO_WritePin(RSTPD_N_GPIO_Port, RSTPD_N_Pin, GPIO_PIN_SET);
     HAL_Delay(100);
     */
-   return 0;
+   return PN532_STATUS_OK;
 }
 
 int PN532_ReadData(uint8_t* data, uint16_t count) {
@@ -92,7 +92,7 @@ int PN532_ReadData(uint8_t* data, uint16_t count) {
     for (uint8_t i = 0; i < count; i++) {
         data[i] = frame[i + 1];
     }
-    return 0;
+    return PN532_STATUS_OK;
 }
 
 int PN532_WriteData(uint8_t *data, uint16_t count) {
@@ -102,7 +102,7 @@ int PN532_WriteData(uint8_t *data, uint16_t count) {
         frame[i + 1] = data[i];
     }
     spi_rw(frame, count + 1);
-    return 0;
+    return PN532_STATUS_OK;
 }
 
 bool PN532_WaitReady(uint32_t timeout) {
@@ -126,7 +126,12 @@ int PN532_Wakeup(void) {
     HAL_Delay(1000);
     spi_rw(data, 1);
     HAL_Delay(1000);
-    return 0;
+    return PN532_STATUS_OK;
+}
+
+void PN532_Log(const char* log) {
+    printf(log);
+    printf("\r\n");
 }
 
 void PN532_Init(PN532* pn532) {
@@ -136,6 +141,7 @@ void PN532_Init(PN532* pn532) {
     pn532->write_data = PN532_WriteData;
     pn532->wait_ready = PN532_WaitReady;
     pn532->wakeup = PN532_Wakeup;
+    pn532->log = PN532_Log;
 
     // hardware wakeup
     pn532->wakeup();

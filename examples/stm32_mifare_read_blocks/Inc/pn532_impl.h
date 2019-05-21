@@ -38,5 +38,6 @@ int PN532_ReadData(uint8_t* data, uint16_t count);
 int PN532_WriteData(uint8_t *data, uint16_t count);
 bool PN532_WaitReady(uint32_t timeout);
 int PN532_Wakeup(void);
+void PN532_Log(const char* log);
 
 #endif  /* PN532_IMPL */
