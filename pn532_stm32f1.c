@@ -121,6 +121,8 @@ int PN532_Wakeup(void) {
     // Send any special commands/data to wake up PN532
     uint8_t data[] = {0x00};
     HAL_Delay(1000);
+    HAL_GPIO_WritePin(SS_GPIO_Port, SS_Pin, GPIO_PIN_RESET);
+    HAL_Delay(2);   // T_osc_start
     spi_rw(data, 1);
     HAL_Delay(1000);
     return PN532_STATUS_OK;
