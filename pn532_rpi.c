@@ -36,6 +36,7 @@
 #define _SPI_READY                      0x01
 
 #define _SPI_CHANNEL                    0
+#define _CS_PIN                         8
 
 
 
@@ -50,6 +51,8 @@ uint8_t reverse_bit(uint8_t num) {
 }
 
 void rpi_spi_rw(uint8_t* data, uint8_t count) {
+    digitalWrite(8, LOW);
+    delay(1);
 #ifndef _SPI_HARDWARE_LSB
     for (uint8_t i = 0; i < count; i++) {
         data[i] = reverse_bit(data[i]);
@@ -61,6 +64,8 @@ void rpi_spi_rw(uint8_t* data, uint8_t count) {
 #else
     wiringPiSPIDataRW (_SPI_CHANNEL, data, count) ;
 #endif
+    delay(1);
+    digitalWrite(8, HIGH);
 }
 
 int PN532_RPi_Reset(void) {
@@ -71,7 +76,7 @@ int PN532_RPi_Reset(void) {
 int PN532_RPi_ReadData(uint8_t* data, uint16_t count) {
     uint8_t frame[count + 1];
     frame[0] = _SPI_DATAREAD;
-    delay(20);
+    delay(5);
     rpi_spi_rw(frame, count + 1);
     for (uint8_t i = 0; i < count; i++) {
         data[i] = frame[i + 1];
@@ -99,12 +104,12 @@ bool PN532_RPi_WaitReady(uint32_t timeout) {
     while (tickend - tickstart < timeout) {
         clock_gettime(CLOCK_MONOTONIC, &timenow);
         tickend = timenow.tv_nsec;
-        delay(20);
+        delay(10);
         rpi_spi_rw(status, sizeof(status));
         if (status[1] == _SPI_READY) {
             return true;
         } else {
-            delay(10);
+            delay(5);
         }
     }
     return false;
@@ -114,6 +119,8 @@ int PN532_RPi_Wakeup(void) {
     // Send any special commands/data to wake up PN532
     uint8_t data[] = {0x00};
     delay(1000);
+    digitalWrite(8, LOW);
+    delay(2);  // T_osc_start
     rpi_spi_rw(data, 1);
     delay(1000);
     return PN532_STATUS_OK;
@@ -136,7 +143,7 @@ void PN532_RPi_Init(PN532* pn532) {
     if (wiringPiSetupGpio() < 0) {  // using Broadcom GPIO pin mapping
         return;
     }
-    wiringPiSPISetup(_SPI_CHANNEL, 11520) ;
+    wiringPiSPISetup(_SPI_CHANNEL, 1000000);
     // hardware wakeup
     pn532->wakeup();
 }

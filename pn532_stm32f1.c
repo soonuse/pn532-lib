@@ -125,7 +125,11 @@ int PN532_Wakeup(void) {
     uint8_t data[] = {0x00};
     HAL_Delay(1000);
     HAL_GPIO_WritePin(SS_GPIO_Port, SS_Pin, GPIO_PIN_RESET);
+<<<<<<< HEAD
     HAL_Delay(2); // T_osc_start
+=======
+    HAL_Delay(2);   // T_osc_start
+>>>>>>> 1ba11bdd8f8c6fafb2a6556bde7db79c08d27b2c
     spi_rw(data, 1);
     HAL_Delay(1000);
     return PN532_STATUS_OK;
