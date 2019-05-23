@@ -5,6 +5,9 @@
  *  
  *  This implements the peripheral interfaces.
  *  
+ *  Check out the links above for our tutorials and wiring diagrams 
+ *  These chips use SPI communicate.
+ *  
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documnetation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
@@ -84,7 +87,7 @@ int PN532_Reset(void) {
 int PN532_ReadData(uint8_t* data, uint16_t count) {
     uint8_t frame[count + 1];
     frame[0] = _SPI_DATAREAD;
-    HAL_Delay(20);
+    HAL_Delay(5);
     spi_rw(frame, count + 1);
     for (uint8_t i = 0; i < count; i++) {
         data[i] = frame[i + 1];
@@ -106,12 +109,12 @@ bool PN532_WaitReady(uint32_t timeout) {
     uint8_t status[] = {_SPI_STATREAD, 0x00};
     uint32_t tickstart = HAL_GetTick();
     while (HAL_GetTick() - tickstart < timeout) {
-        HAL_Delay(20);
+        HAL_Delay(10);
         spi_rw(status, sizeof(status));
         if (status[1] == _SPI_READY) {
             return true;
         } else {
-            HAL_Delay(10);
+            HAL_Delay(5);
         }
     }
     return false;
@@ -121,6 +124,8 @@ int PN532_Wakeup(void) {
     // Send any special commands/data to wake up PN532
     uint8_t data[] = {0x00};
     HAL_Delay(1000);
+    HAL_GPIO_WritePin(SS_GPIO_Port, SS_Pin, GPIO_PIN_RESET);
+    HAL_Delay(2); // T_osc_start
     spi_rw(data, 1);
     HAL_Delay(1000);
     return PN532_STATUS_OK;
