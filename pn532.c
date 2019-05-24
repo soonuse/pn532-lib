@@ -34,11 +34,13 @@ const uint8_t PN532_ACK[] = {0x00, 0x00, 0xFF, 0x00, 0xFF, 0x00};
 const uint8_t PN532_FRAME_START[] = {0x00, 0x00, 0xFF};
 
 #define PN532_FRAME_MAX_LENGTH              255
+#define PN532_DEFAULT_TIMEOUT               1000
 
-/* @brief: Write a frame to the PN532 of at most length bytes in size.
- *     Note that less than length bytes might be returned!
- * @retval: Returns -1 if there is an error parsing the frame.  
-*/
+/**
+  * @brief: Write a frame to the PN532 of at most length bytes in size.
+  *     Note that less than length bytes might be returned!
+  * @retval: Returns -1 if there is an error parsing the frame.  
+  */
 int PN532_WriteFrame(PN532* pn532, uint8_t* data, uint16_t length) {
     if (length > PN532_FRAME_MAX_LENGTH || length < 1) {
         return PN532_STATUS_ERROR; // Data must be array of 1 to 255 bytes.
@@ -74,15 +76,16 @@ int PN532_WriteFrame(PN532* pn532, uint8_t* data, uint16_t length) {
     return PN532_STATUS_OK;
 }
 
-/* @brief: Read a response frame from the PN532 of at most length bytes in size.
- *     Note that less than length bytes might be returned!
- * @retval: Returns -1 if there is an error parsing the frame.  
-*/
+/**
+  * @brief: Read a response frame from the PN532 of at most length bytes in size.
+  *     Note that less than length bytes might be returned!
+  * @retval: Returns -1 if there is an error parsing the frame.  
+  */
 int PN532_ReadFrame(PN532* pn532, uint8_t* response, uint16_t length) {
     uint8_t buff[PN532_FRAME_MAX_LENGTH + 7];
     uint8_t checksum = 0;
     // Read frame with expected length of data.
-    pn532->read_data(buff, length + 8);
+    pn532->read_data(buff, length + 7);
     // Swallow all the 0x00 values that preceed 0xFF.
     uint8_t offset = 0;
     while (buff[offset] == 0x00) {
@@ -125,19 +128,20 @@ int PN532_ReadFrame(PN532* pn532, uint8_t* response, uint16_t length) {
     return PN532_STATUS_OK;
 }
 
-/* @brief: Send specified command to the PN532 and expect up to response_length.
- *     Will wait up to timeout seconds for a response and read a bytearray into
- *     response buffer.
- * @param pn532: PN532 handler
- * @param command: command to send
- * @param response: buffer returned
- * @param response_length: expected response length
- * @param params: can optionally specify an array of bytes to send as parameters
- *     to the function call, or NULL if there is no need to send parameters.
- * @param params_length: length of the argument params
- * @param timeout: timout of systick
- * @retval: Returns 0 if success or error code if error.
- */
+/**
+  * @brief: Send specified command to the PN532 and expect up to response_length.
+  *     Will wait up to timeout seconds for a response and read a bytearray into
+  *     response buffer.
+  * @param pn532: PN532 handler
+  * @param command: command to send
+  * @param response: buffer returned
+  * @param response_length: expected response length
+  * @param params: can optionally specify an array of bytes to send as parameters
+  *     to the function call, or NULL if there is no need to send parameters.
+  * @param params_length: length of the argument params
+  * @param timeout: timout of systick
+  * @retval: Returns 0 if success or error code if error.
+  */
 int PN532_CallFunction(
     PN532* pn532,
     uint8_t command,
@@ -189,9 +193,10 @@ int PN532_CallFunction(
     return PN532_STATUS_OK;
 }
 
-/* @brief: Call PN532 GetFirmwareVersion function and return a buff with the IC,
- *  Ver, Rev, and Support values.
- */
+/**
+  * @brief: Call PN532 GetFirmwareVersion function and return a buff with the IC,
+  *  Ver, Rev, and Support values.
+  */
 int PN532_GetFirmwareVersion(PN532* pn532, uint8_t* version) {
     // length of version: 4
     if (PN532_CallFunction(pn532, PN532_COMMAND_GETFIRMWAREVERSION,
@@ -202,8 +207,9 @@ int PN532_GetFirmwareVersion(PN532* pn532, uint8_t* version) {
     return PN532_STATUS_OK;
 }
 
-/* @brief: Configure the PN532 to read MiFare cards.
-*/
+/**
+  * @brief: Configure the PN532 to read MiFare cards.
+  */
 int PN532_SamConfiguration(PN532* pn532) {
     // Send SAM configuration command with configuration for:
     // - 0x01, normal mode
@@ -213,15 +219,16 @@ int PN532_SamConfiguration(PN532* pn532) {
     // check the command was executed as expected.
     uint8_t params[] = {0x01, 0x14, 0x01};
     PN532_CallFunction(pn532, PN532_COMMAND_SAMCONFIGURATION,
-                       NULL, 0, params, sizeof(params), 1000);
+                       NULL, 0, params, sizeof(params), PN532_DEFAULT_TIMEOUT);
     return PN532_STATUS_OK;
 }
 
-/* @brief: Wait for a MiFare card to be available and return its UID when found.
- *     Will wait up to timeout seconds and return None if no card is found,
- *     otherwise a bytearray with the UID of the found card is returned.
- * @retval: Length of UID, or -1 if error.
- */
+/**
+  * @brief: Wait for a MiFare card to be available and return its UID when found.
+  *     Will wait up to timeout seconds and return None if no card is found,
+  *     otherwise a bytearray with the UID of the found card is returned.
+  * @retval: Length of UID, or -1 if error.
+  */
 int PN532_ReadPassiveTarget(
     PN532* pn532,
     uint8_t* response,
@@ -251,16 +258,16 @@ int PN532_ReadPassiveTarget(
     return buff[5];
 }
 
-/*
- * @brief: Authenticate specified block number for a MiFare classic card.
- * @param uid: A byte array with the UID of the card.
- * @param uid_length: Length of the UID of the card.
- * @param block_number: The block to authenticate.
- * @param key_number: The key type (like MIFARE_CMD_AUTH_A or MIFARE_CMD_AUTH_B).
- * @param key: A byte array with the key data.
- * @retval: true if the block was authenticated, or false if not authenticated.
- * @retval: PN532 error code.
- */
+/**
+  * @brief: Authenticate specified block number for a MiFare classic card.
+  * @param uid: A byte array with the UID of the card.
+  * @param uid_length: Length of the UID of the card.
+  * @param block_number: The block to authenticate.
+  * @param key_number: The key type (like MIFARE_CMD_AUTH_A or MIFARE_CMD_AUTH_B).
+  * @param key: A byte array with the key data.
+  * @retval: true if the block was authenticated, or false if not authenticated.
+  * @retval: PN532 error code.
+  */
 int PN532_MifareClassicAuthenticateBlock(
     PN532* pn532,
     uint8_t* uid,
@@ -285,22 +292,23 @@ int PN532_MifareClassicAuthenticateBlock(
     }
     // Send InDataExchange request
     PN532_CallFunction(pn532, PN532_COMMAND_INDATAEXCHANGE, response, sizeof(response),
-                       params, 3 + MIFARE_KEY_LENGTH + uid_length, 1000);
+                       params, 3 + MIFARE_KEY_LENGTH + uid_length, PN532_DEFAULT_TIMEOUT);
     return response[0];
 }
 
-/* @brief: Read a block of data from the card. Block number should be the block
- *     to read.
- * @param response: buffer of length 16 returned if the block is successfully read.
- * @param block_number: specify a block to read.
- * @retval: PN532 error code.
-*/
+/**
+  * @brief: Read a block of data from the card. Block number should be the block
+  *     to read.
+  * @param response: buffer of length 16 returned if the block is successfully read.
+  * @param block_number: specify a block to read.
+  * @retval: PN532 error code.
+  */
 int PN532_MifareClassicReadBlock(PN532* pn532, uint8_t* response, uint16_t block_number) {
     uint8_t params[] = {0x01, MIFARE_CMD_READ, block_number & 0xFF};
     uint8_t buff[MIFARE_BLOCK_LENGTH + 1];
     // Send InDataExchange request to read block of MiFare data.
     PN532_CallFunction(pn532, PN532_COMMAND_INDATAEXCHANGE, buff, sizeof(buff),
-                       params, sizeof(params), 1000);
+                       params, sizeof(params), PN532_DEFAULT_TIMEOUT);
     // Check first response is 0x00 to show success.
     if (buff[0] != PN532_ERROR_NONE) {
         return buff[0];
@@ -311,13 +319,14 @@ int PN532_MifareClassicReadBlock(PN532* pn532, uint8_t* response, uint16_t block
     return buff[0];
 }
 
-/* @brief: Write a block of data to the card.  Block number should be the block
- *     to write and data should be a byte array of length 16 with the data to
- *     write.
- * @param data: data to write.
- * @param block_number: specify a block to write.
- * @retval: PN532 error code.
- */
+/**
+  * @brief: Write a block of data to the card.  Block number should be the block
+  *     to write and data should be a byte array of length 16 with the data to
+  *     write.
+  * @param data: data to write.
+  * @param block_number: specify a block to write.
+  * @retval: PN532 error code.
+  */
 int PN532_MifareClassicWriteBlock(PN532* pn532, uint8_t* data, uint16_t block_number) {
     uint8_t params[19];
     uint8_t response[1];
@@ -328,6 +337,115 @@ int PN532_MifareClassicWriteBlock(PN532* pn532, uint8_t* data, uint16_t block_nu
         params[3 + i] = data[i];
     }
     PN532_CallFunction(pn532, PN532_COMMAND_INDATAEXCHANGE, response,
-                       sizeof(response), params, sizeof(params), 1000);
+                       sizeof(response), params, sizeof(params), PN532_DEFAULT_TIMEOUT);
     return response[0];
+}
+
+/**
+  * @brief: Read the GPIO states.
+  * @param pin_state: pin state buffer (3 bytes) returned.
+  * returns 3 bytes containing the pin state where:
+  *     P3[0] = P30,   P7[0] = 0,   I[0] = I0,
+  *     P3[1] = P31,   P7[1] = P71, I[1] = I1,
+  *     P3[2] = P32,   P7[2] = P72, I[2] = 0,
+  *     P3[3] = P33,   P7[3] = 0,   I[3] = 0,
+  *     P3[4] = P34,   P7[4] = 0,   I[4] = 0,
+  *     P3[5] = P35,   P7[5] = 0,   I[5] = 0,
+  *     P3[6] = 0,     P7[6] = 0,   I[6] = 0,
+  *     P3[7] = 0,     P7[7] = 0,   I[7] = 0,
+  * @retval: -1 if error
+  */
+int PN532_ReadGpio(PN532* pn532, uint8_t* pins_state) {
+    return PN532_CallFunction(pn532, PN532_COMMAND_READGPIO, pins_state, 3,
+                              NULL, 0, PN532_DEFAULT_TIMEOUT);
+}
+/**
+  * @brief: Read the GPIO state of specified pins in (P30 ... P35).
+  * @param pin_number: specify the pin to read.
+  * @retval: true if HIGH, false if LOW
+  */
+bool PN532_ReadGpioP(PN532* pn532, uint8_t pin_number) {
+    uint8_t pins_state[3];
+    PN532_CallFunction(pn532, PN532_COMMAND_READGPIO, pins_state,
+                       sizeof(pins_state), NULL, 0, PN532_DEFAULT_TIMEOUT);
+    if ((pin_number >= 30) && (pin_number <= 37)) {
+        return (pins_state[0] >> (pin_number - 30)) & 1 ? true : false;
+    }
+    if ((pin_number >= 70) && (pin_number <= 77)) {
+        return (pins_state[1] >> (pin_number - 70)) & 1 ? true : false;
+    }
+    return false;
+}
+/**
+  * @brief: Read the GPIO state of I0 or I1 pin.
+  * @param pin_number: specify the pin to read.
+  * @retval: true if HIGH, false if LOW
+  */
+bool PN532_ReadGpioI(PN532* pn532, uint8_t pin_number) {
+    uint8_t pins_state[3];
+    PN532_CallFunction(pn532, PN532_COMMAND_READGPIO, pins_state,
+                       sizeof(pins_state), NULL, 0, PN532_DEFAULT_TIMEOUT);
+    if ((pin_number >= 0) && (pin_number <= 7)) {
+        return (pins_state[2] >> pin_number) & 1 ? true : false;
+    }
+    return false;
+}
+/**
+  * @brief: Write the GPIO states.
+  * @param pins_state: pin state buffer (2 bytes) to write.
+  *     no need to read pin states before write with the param pin_state
+  *         P3 = pin_state[0], P7 = pin_state[1]
+  *     bits:
+  *         P3[0] = P30,   P7[0] = 0,
+  *         P3[1] = P31,   P7[1] = P71,
+  *         P3[2] = P32,   P7[2] = P72,
+  *         P3[3] = P33,   P7[3] = nu,
+  *         P3[4] = P34,   P7[4] = nu,
+  *         P3[5] = P35,   P7[5] = nu,
+  *         P3[6] = nu,    P7[6] = nu,
+  *         P3[7] = Val,   P7[7] = Val,
+  *     For each port that is validated (bit Val = 1), all the bits are applied
+  *     simultaneously. It is not possible for example to modify the state of
+  *     the port P32 without applying a value to the ports P30, P31, P33, P34
+  *     and P35.
+  * @retval: -1 if error
+  */
+int PN532_WriteGpio(PN532* pn532, uint8_t* pins_state) {
+    uint8_t params[2];
+    // 0x80, the validation bit.
+    params[0] = 0x80 | pins_state[0];
+    params[1] = 0x80 | pins_state[1];
+    return PN532_CallFunction(pn532, PN532_COMMAND_WRITEGPIO, NULL, 0,
+                              params, sizeof(params), PN532_DEFAULT_TIMEOUT);
+}
+/**
+  * @brief: Write the specified pin with given states.
+  * @param pin_number: specify the pin to write.
+  * @param pin_state: specify the pin state. true for HIGH, false for LOW.
+  * @retval: -1 if error
+  */
+int PN532_WriteGpioP(PN532* pn532, uint8_t pin_number, bool pin_state) {
+    uint8_t pins_state[2];
+    uint8_t params[2];
+    if (PN532_ReadGpio(pn532, pins_state) == PN532_STATUS_ERROR) {
+        return PN532_STATUS_ERROR;
+    }
+    if ((pin_number >= 30) && (pin_number <= 37)) {
+        if (pin_state) {
+            params[0] = 0x80 | pins_state[0] | 1 << (pin_number - 30);
+        } else {
+            params[0] = (0x80 | pins_state[0]) & ~(1 << (pin_number - 30));
+        }
+        params[1] = 0x00;   // leave p7 unchanged
+    }
+    if ((pin_number >= 70) && (pin_number <= 77)) {
+        if (pin_state) {
+            params[1] = 0x80 | pins_state[1] | 1 << (pin_number - 70);
+        } else {
+            params[1] = (0x80 | pins_state[1]) & ~(1 << (pin_number - 70));
+        }
+        params[0] = 0x00;   // leave p3 unchanged
+    }
+    return PN532_CallFunction(pn532, PN532_COMMAND_WRITEGPIO, NULL, 0,
+                              params, sizeof(params), PN532_DEFAULT_TIMEOUT);
 }
