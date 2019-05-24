@@ -36,7 +36,8 @@
 #define _SPI_READY                      0x01
 
 #define _SPI_CHANNEL                    0
-#define _CS_PIN                         8
+#define _NSS_PIN                        8
+#define _RESET_PIN                      6
 
 
 
@@ -51,7 +52,7 @@ uint8_t reverse_bit(uint8_t num) {
 }
 
 void rpi_spi_rw(uint8_t* data, uint8_t count) {
-    digitalWrite(8, LOW);
+    digitalWrite(_NSS_PIN, LOW);
     delay(1);
 #ifndef _SPI_HARDWARE_LSB
     for (uint8_t i = 0; i < count; i++) {
@@ -65,12 +66,17 @@ void rpi_spi_rw(uint8_t* data, uint8_t count) {
     wiringPiSPIDataRW (_SPI_CHANNEL, data, count) ;
 #endif
     delay(1);
-    digitalWrite(8, HIGH);
+    digitalWrite(_NSS_PIN, HIGH);
 }
 
 int PN532_RPi_Reset(void) {
-    // TODO: in most cases, reset pin is no need for SPI
-   return PN532_STATUS_OK;
+    digitalWrite(_RESET_PIN, HIGH);
+    delay(100);
+    digitalWrite(_RESET_PIN, LOW);
+    delay(500);
+    digitalWrite(_RESET_PIN, HIGH);
+    delay(100);
+    return PN532_STATUS_OK;
 }
 
 int PN532_RPi_ReadData(uint8_t* data, uint16_t count) {
@@ -119,7 +125,7 @@ int PN532_RPi_Wakeup(void) {
     // Send any special commands/data to wake up PN532
     uint8_t data[] = {0x00};
     delay(1000);
-    digitalWrite(8, LOW);
+    digitalWrite(_NSS_PIN, LOW);
     delay(2);  // T_osc_start
     rpi_spi_rw(data, 1);
     delay(1000);
@@ -143,7 +149,11 @@ void PN532_RPi_Init(PN532* pn532) {
     if (wiringPiSetupGpio() < 0) {  // using Broadcom GPIO pin mapping
         return;
     }
+    pinMode(_NSS_PIN, OUTPUT);
+    pinMode(_RESET_PIN, OUTPUT);
     wiringPiSPISetup(_SPI_CHANNEL, 1000000);
+    // hardware reset
+    pn532->reset();
     // hardware wakeup
     pn532->wakeup();
 }

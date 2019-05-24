@@ -13,7 +13,6 @@ int main(int argc, char** argv) {
     printf("Hello!\r\n");
     PN532 pn532;
     PN532_RPi_Init(&pn532);
-    PN532_GetFirmwareVersion(&pn532, buff);
     if (PN532_GetFirmwareVersion(&pn532, buff) == PN532_STATUS_OK) {
         printf("Found PN532 with firmware version: %d.%d\r\n", buff[1], buff[2]);
     }
