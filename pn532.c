@@ -79,7 +79,7 @@ int PN532_WriteFrame(PN532* pn532, uint8_t* data, uint16_t length) {
 /**
   * @brief: Read a response frame from the PN532 of at most length bytes in size.
   *     Note that less than length bytes might be returned!
-  * @retval: Returns -1 if there is an error parsing the frame.  
+  * @retval: Returns frame length or -1 if there is an error parsing the frame.  
   */
 int PN532_ReadFrame(PN532* pn532, uint8_t* response, uint16_t length) {
     uint8_t buff[PN532_FRAME_MAX_LENGTH + 7];
@@ -111,7 +111,6 @@ int PN532_ReadFrame(PN532* pn532, uint8_t* response, uint16_t length) {
         return PN532_STATUS_ERROR;
     }
     // Check frame checksum value matches bytes.
-    // uint8_t checksum = sum(buff[offset+2:offset+2+frame_len+1]) & 0xFF;
     for (uint8_t i = 0; i < frame_len + 1; i++) {
         checksum += buff[offset + 2 + i];
     }
@@ -121,11 +120,10 @@ int PN532_ReadFrame(PN532* pn532, uint8_t* response, uint16_t length) {
         return PN532_STATUS_ERROR;
     }
     // Return frame data.
-    // return response[offset+2:offset+2+frame_len]
     for (uint8_t i = 0; i < frame_len; i++) {
         response[i] = buff[offset + 2 + i];
     }
-    return PN532_STATUS_OK;
+    return frame_len;
 }
 
 /**
@@ -140,7 +138,7 @@ int PN532_ReadFrame(PN532* pn532, uint8_t* response, uint16_t length) {
   *     to the function call, or NULL if there is no need to send parameters.
   * @param params_length: length of the argument params
   * @param timeout: timout of systick
-  * @retval: Returns 0 if success or error code if error.
+  * @retval: Returns the length of response or -1 if error.
   */
 int PN532_CallFunction(
     PN532* pn532,
@@ -179,7 +177,7 @@ int PN532_CallFunction(
         return PN532_STATUS_ERROR;
     }
     // Read response bytes.
-    PN532_ReadFrame(pn532, buff, response_length + 2);
+    int frame_len = PN532_ReadFrame(pn532, buff, response_length + 2);
 
     // Check that response is for the called function.
     if (! ((buff[0] == PN532_PN532TOHOST) && (buff[1] == (command+1)))) {
@@ -190,7 +188,8 @@ int PN532_CallFunction(
     for (uint8_t i = 0; i < response_length; i++) {
         response[i] = buff[i + 2];
     }
-    return PN532_STATUS_OK;
+    // The the number of bytes read
+    return frame_len - 2;
 }
 
 /**
@@ -200,7 +199,7 @@ int PN532_CallFunction(
 int PN532_GetFirmwareVersion(PN532* pn532, uint8_t* version) {
     // length of version: 4
     if (PN532_CallFunction(pn532, PN532_COMMAND_GETFIRMWAREVERSION,
-                           version, 4, NULL, 0, 500) != PN532_STATUS_OK) {
+                           version, 4, NULL, 0, 500) == PN532_STATUS_ERROR) {
         pn532->log("Failed to detect the PN532");
         return PN532_STATUS_ERROR;
     }
@@ -238,9 +237,9 @@ int PN532_ReadPassiveTarget(
     // Send passive read command for 1 card.  Expect at most a 7 byte UUID.
     uint8_t params[] = {0x01, card_baud};
     uint8_t buff[19];
-    int error = PN532_CallFunction(pn532, PN532_COMMAND_INLISTPASSIVETARGET,
+    int length = PN532_CallFunction(pn532, PN532_COMMAND_INLISTPASSIVETARGET,
                         buff, sizeof(buff), params, sizeof(params), timeout);
-    if (error) {
+    if (length < 0) {
         return PN532_STATUS_ERROR; // No card found
     }
     // Check only 1 card with up to a 7 byte UID is present.
