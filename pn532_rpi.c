@@ -69,7 +69,7 @@ void rpi_spi_rw(uint8_t* data, uint8_t count) {
     digitalWrite(_NSS_PIN, HIGH);
 }
 
-int PN532_RPi_Reset(void) {
+int PN532_Reset(void) {
     digitalWrite(_RESET_PIN, HIGH);
     delay(100);
     digitalWrite(_RESET_PIN, LOW);
@@ -79,7 +79,7 @@ int PN532_RPi_Reset(void) {
     return PN532_STATUS_OK;
 }
 
-int PN532_RPi_ReadData(uint8_t* data, uint16_t count) {
+int PN532_SPI_ReadData(uint8_t* data, uint16_t count) {
     uint8_t frame[count + 1];
     frame[0] = _SPI_DATAREAD;
     delay(5);
@@ -90,7 +90,7 @@ int PN532_RPi_ReadData(uint8_t* data, uint16_t count) {
     return PN532_STATUS_OK;
 }
 
-int PN532_RPi_WriteData(uint8_t *data, uint16_t count) {
+int PN532_SPI_WriteData(uint8_t *data, uint16_t count) {
     uint8_t frame[count + 1];
     frame[0] = _SPI_DATAWRITE;
     for (uint8_t i = 0; i < count; i++) {
@@ -100,7 +100,7 @@ int PN532_RPi_WriteData(uint8_t *data, uint16_t count) {
     return PN532_STATUS_OK;
 }
 
-bool PN532_RPi_WaitReady(uint32_t timeout) {
+bool PN532_SPI_WaitReady(uint32_t timeout) {
     uint8_t status[] = {_SPI_STATREAD, 0x00};
     struct timespec timenow;
     long tickstart = 0;
@@ -121,7 +121,7 @@ bool PN532_RPi_WaitReady(uint32_t timeout) {
     return false;
 }
 
-int PN532_RPi_Wakeup(void) {
+int PN532_SPI_Wakeup(void) {
     // Send any special commands/data to wake up PN532
     uint8_t data[] = {0x00};
     delay(1000);
@@ -132,19 +132,19 @@ int PN532_RPi_Wakeup(void) {
     return PN532_STATUS_OK;
 }
 
-void PN532_RPi_Log(const char* log) {
+void PN532_Log(const char* log) {
     printf(log);
     printf("\r\n");
 }
 
-void PN532_RPi_Init(PN532* pn532) {
+void PN532_SPI_Init(PN532* pn532) {
     // init the pn532 functions
-    pn532->reset =  PN532_RPi_Reset;
-    pn532->read_data = PN532_RPi_ReadData;
-    pn532->write_data = PN532_RPi_WriteData;
-    pn532->wait_ready = PN532_RPi_WaitReady;
-    pn532->wakeup = PN532_RPi_Wakeup;
-    pn532->log = PN532_RPi_Log;
+    pn532->reset = PN532_Reset;
+    pn532->read_data = PN532_SPI_ReadData;
+    pn532->write_data = PN532_SPI_WriteData;
+    pn532->wait_ready = PN532_SPI_WaitReady;
+    pn532->wakeup = PN532_SPI_Wakeup;
+    pn532->log = PN532_Log;
     // SPI setup
     if (wiringPiSetupGpio() < 0) {  // using Broadcom GPIO pin mapping
         return;

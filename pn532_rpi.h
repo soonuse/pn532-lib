@@ -29,12 +29,12 @@
 
 #include "pn532.h"
 
-void PN532_RPi_Init(PN532* dev);
-int PN532_RPi_Reset(void);
-int PN532_RPi_ReadData(uint8_t* data, uint16_t count);
-int PN532_RPi_WriteData(uint8_t *data, uint16_t count);
-bool PN532_RPi_WaitReady(uint32_t timeout);
-int PN532_RPi_Wakeup(void);
-void PN532_RPi_Log(const char* log);
+void PN532_SPI_Init(PN532* dev);
+int PN532_Reset(void);
+int PN532_SPI_ReadData(uint8_t* data, uint16_t count);
+int PN532_SPI_WriteData(uint8_t *data, uint16_t count);
+bool PN532_SPI_WaitReady(uint32_t timeout);
+int PN532_SPI_Wakeup(void);
+void PN532_Log(const char* log);
 
 #endif  /* PN532_RPI */
