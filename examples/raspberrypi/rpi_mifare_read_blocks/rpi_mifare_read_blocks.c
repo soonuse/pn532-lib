@@ -15,6 +15,8 @@ int main(int argc, char** argv) {
     PN532_SPI_Init(&pn532);
     if (PN532_GetFirmwareVersion(&pn532, buff) == PN532_STATUS_OK) {
         printf("Found PN532 with firmware version: %d.%d\r\n", buff[1], buff[2]);
+    } else {
+        return -1;
     }
     PN532_SamConfiguration(&pn532);
     printf("Waiting for RFID/NFC card...\r\n");

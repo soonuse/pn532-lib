@@ -25,9 +25,14 @@
  **************************************************************************/
 
 #include <stdio.h>
+#include <unistd.h>
+#include <errno.h>
+#include <string.h>
+
 #include <time.h>
 #include "wiringPi.h"
 #include "wiringPiSPI.h"
+#include "wiringSerial.h"
 #include "pn532_rpi.h"
 
 #define _SPI_STATREAD                   0x02
@@ -39,7 +44,7 @@
 #define _NSS_PIN                        8
 #define _RESET_PIN                      6
 
-
+static int fd = 0;
 
 uint8_t reverse_bit(uint8_t num) {
     uint8_t result = 0;
@@ -58,12 +63,12 @@ void rpi_spi_rw(uint8_t* data, uint8_t count) {
     for (uint8_t i = 0; i < count; i++) {
         data[i] = reverse_bit(data[i]);
     }
-    wiringPiSPIDataRW (_SPI_CHANNEL, data, count) ;
+    wiringPiSPIDataRW(_SPI_CHANNEL, data, count);
     for (uint8_t i = 0; i < count; i++) {
         data[i] = reverse_bit(data[i]);
     }
 #else
-    wiringPiSPIDataRW (_SPI_CHANNEL, data, count) ;
+    wiringPiSPIDataRW(_SPI_CHANNEL, data, count);
 #endif
     delay(1);
     digitalWrite(_NSS_PIN, HIGH);
@@ -77,6 +82,11 @@ int PN532_Reset(void) {
     digitalWrite(_RESET_PIN, HIGH);
     delay(100);
     return PN532_STATUS_OK;
+}
+
+void PN532_Log(const char* log) {
+    printf(log);
+    printf("\r\n");
 }
 
 int PN532_SPI_ReadData(uint8_t* data, uint16_t count) {
@@ -132,9 +142,54 @@ int PN532_SPI_Wakeup(void) {
     return PN532_STATUS_OK;
 }
 
-void PN532_Log(const char* log) {
-    printf(log);
-    printf("\r\n");
+int PN532_UART_ReadData(uint8_t* data, uint16_t count) {
+    int index = 0;
+    int length = count; // length of frame (data[3]) might be shorter than the count
+    while (index < 4) {
+        if (serialDataAvail(fd)) {
+            data[index] = serialGetchar(fd);
+            index++;
+        } else {
+            delay(5);
+        }
+    }
+    if (data[3] != 0) {
+        length = data[3] + 7;
+    }
+    while (index < length) {
+        if (serialDataAvail(fd)) {
+            data[index] = serialGetchar(fd);
+            if (index == 3 && data[index] != 0) {
+                length = data[index] + 7;
+            }
+            index++;
+        } else {
+            delay(5);
+        }
+    }
+    return PN532_STATUS_OK;
+}
+
+int PN532_UART_WriteData(uint8_t *data, uint16_t count) {
+    // clear FIFO queue of UART
+    while (serialDataAvail(fd)) {
+        serialGetchar(fd);
+    }
+    write(fd, data, count);
+    return PN532_STATUS_OK;
+}
+
+bool PN532_UART_WaitReady(uint32_t timeout) {
+    delay(timeout);
+    return true;
+}
+
+int PN532_UART_Wakeup(void) {
+    // Send any special commands/data to wake up PN532
+    uint8_t data[] = {0x55, 0x55, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF, 0x03, 0xFD, 0xD4, 0x14, 0x01, 0x17, 0x00};
+    write(fd, data, sizeof(data));
+    delay(50);
+    return PN532_STATUS_OK;
 }
 
 void PN532_SPI_Init(PN532* pn532) {
@@ -152,6 +207,26 @@ void PN532_SPI_Init(PN532* pn532) {
     pinMode(_NSS_PIN, OUTPUT);
     pinMode(_RESET_PIN, OUTPUT);
     wiringPiSPISetup(_SPI_CHANNEL, 1000000);
+    // hardware reset
+    pn532->reset();
+    // hardware wakeup
+    pn532->wakeup();
+}
+
+void PN532_UART_Init(PN532* pn532) {
+    // init the pn532 functions
+    pn532->reset = PN532_Reset;
+    pn532->read_data = PN532_UART_ReadData;
+    pn532->write_data = PN532_UART_WriteData;
+    pn532->wait_ready = PN532_UART_WaitReady;
+    pn532->wakeup = PN532_UART_Wakeup;
+    pn532->log = PN532_Log;
+    // UART setup
+    fd = serialOpen("/dev/ttyS0", 115200);
+    if (fd < 0) {
+        fprintf(stderr, "Unable to open serial device: %s\n", strerror(errno));
+        return;
+    }
     // hardware reset
     pn532->reset();
     // hardware wakeup
