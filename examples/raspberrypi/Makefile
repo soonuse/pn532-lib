@@ -1,7 +1,7 @@
 CC=gcc
 DLIBS=-lwiringPi
 INC_DIR=../../
-all:rpi_read_gpio.exe rpi_write_gpio.exe rpi_mifare_read_blocks.exe rpi_get_uid.exe
+all:rpi_read_gpio.exe rpi_write_gpio.exe rpi_dump_mifare.exe rpi_get_uid.exe
 rpi_read_gpio.exe:rpi_read_gpio.o pn532.o pn532_rpi.o
 	$(CC) -Wall -o $@ $^ $(DLIBS)
 rpi_read_gpio.o:rpi_read_gpio.c
@@ -10,9 +10,9 @@ rpi_write_gpio.exe:rpi_write_gpio.o pn532.o pn532_rpi.o
 	$(CC) -Wall -o $@ $^ $(DLIBS)
 rpi_write_gpio.o:rpi_write_gpio.c
 	$(CC) -Wall -c $^ $(DLIBS) -I$(INC_DIR)
-rpi_mifare_read_blocks.exe:rpi_mifare_read_blocks.o pn532.o pn532_rpi.o
+rpi_dump_mifare.exe:rpi_dump_mifare.o pn532.o pn532_rpi.o
 	$(CC) -Wall -o $@ $^ $(DLIBS)
-rpi_mifare_read_blocks.o:rpi_mifare_read_blocks.c
+rpi_dump_mifare.o:rpi_dump_mifare.c
 	$(CC) -Wall -c $^ $(DLIBS) -I$(INC_DIR)
 rpi_get_uid.exe:rpi_get_uid.o pn532.o pn532_rpi.o
 	$(CC) -Wall -o $@ $^ $(DLIBS)
