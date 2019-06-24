@@ -115,19 +115,20 @@ int PN532_SPI_WriteData(uint8_t *data, uint16_t count) {
 bool PN532_SPI_WaitReady(uint32_t timeout) {
     uint8_t status[] = {_SPI_STATREAD, 0x00};
     struct timespec timenow;
-    long tickstart = 0;
-    long tickend  = 0;
-    clock_gettime(CLOCK_MONOTONIC, &timenow);
-    tickend = tickstart = timenow.tv_nsec;
-    while (tickend - tickstart < (timeout*1000000)) {   // timeout ms to ns
-        clock_gettime(CLOCK_MONOTONIC, &timenow);
-        tickend = timenow.tv_nsec;
+    struct timespec timestart;
+    clock_gettime(CLOCK_MONOTONIC, &timestart);
+    while (1) {   // compare ns to ms
         delay(10);
         rpi_spi_rw(status, sizeof(status));
         if (status[1] == _SPI_READY) {
             return true;
         } else {
             delay(5);
+        }
+        clock_gettime(CLOCK_MONOTONIC, &timenow);
+        if ((timenow.tv_sec - timestart.tv_sec) * 1000 + \
+            (timenow.tv_nsec - timestart.tv_nsec) / 1000000 > timeout) {
+            break;
         }
     }
     return false;
@@ -183,17 +184,18 @@ int PN532_UART_WriteData(uint8_t *data, uint16_t count) {
 
 bool PN532_UART_WaitReady(uint32_t timeout) {
     struct timespec timenow;
-    long tickstart = 0;
-    long tickend  = 0;
-    clock_gettime(CLOCK_MONOTONIC, &timenow);
-    tickend = tickstart = timenow.tv_nsec;
-    while (tickend - tickstart < (timeout*1000000)) {   // timeout ms to ns
-        clock_gettime(CLOCK_MONOTONIC, &timenow);
-        tickend = timenow.tv_nsec;
+    struct timespec timestart;
+    clock_gettime(CLOCK_MONOTONIC, &timestart);
+    while (1) {
         if (serialDataAvail(fd) > 0) {
             return true;
         } else {
             delay(50);
+        }
+        clock_gettime(CLOCK_MONOTONIC, &timenow);
+        if ((timenow.tv_sec - timestart.tv_sec) * 1000 + \
+            (timenow.tv_nsec - timestart.tv_nsec) / 1000000 > timeout) {
+            break;
         }
     }
     // Time out!
