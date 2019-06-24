@@ -41,8 +41,10 @@
 #define _SPI_READY                      0x01
 
 #define _SPI_CHANNEL                    0
-#define _NSS_PIN                        8
-#define _RESET_PIN                      6
+// #define _NSS_PIN                        8
+// #define _RESET_PIN                      6
+#define _NSS_PIN                        4
+#define _RESET_PIN                      20
 
 static int fd = 0;
 
@@ -117,7 +119,7 @@ bool PN532_SPI_WaitReady(uint32_t timeout) {
     long tickend  = 0;
     clock_gettime(CLOCK_MONOTONIC, &timenow);
     tickend = tickstart = timenow.tv_nsec;
-    while (tickend - tickstart < timeout) {
+    while (tickend - tickstart < (timeout*1000000)) {   // timeout ms to ns
         clock_gettime(CLOCK_MONOTONIC, &timenow);
         tickend = timenow.tv_nsec;
         delay(10);
@@ -180,8 +182,22 @@ int PN532_UART_WriteData(uint8_t *data, uint16_t count) {
 }
 
 bool PN532_UART_WaitReady(uint32_t timeout) {
-    delay(timeout);
-    return true;
+    struct timespec timenow;
+    long tickstart = 0;
+    long tickend  = 0;
+    clock_gettime(CLOCK_MONOTONIC, &timenow);
+    tickend = tickstart = timenow.tv_nsec;
+    while (tickend - tickstart < (timeout*1000000)) {   // timeout ms to ns
+        clock_gettime(CLOCK_MONOTONIC, &timenow);
+        tickend = timenow.tv_nsec;
+        if (serialDataAvail(fd) > 0) {
+            return true;
+        } else {
+            delay(50);
+        }
+    }
+    // Time out!
+    return false;
 }
 
 int PN532_UART_Wakeup(void) {
