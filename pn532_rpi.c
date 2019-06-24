@@ -28,8 +28,12 @@
 #include <unistd.h>
 #include <errno.h>
 #include <string.h>
-
+#include <sys/ioctl.h>
+#include <fcntl.h>
+#include <linux/i2c-dev.h>
+#include <linux/i2c.h>
 #include <time.h>
+
 #include "wiringPi.h"
 #include "wiringPiSPI.h"
 #include "wiringSerial.h"
@@ -41,13 +45,19 @@
 #define _SPI_READY                      0x01
 
 #define _SPI_CHANNEL                    0
-// #define _NSS_PIN                        8
-// #define _RESET_PIN                      6
 #define _NSS_PIN                        4
 #define _RESET_PIN                      20
+#define _REQ_PIN                        16
+
+#define _I2C_READY                      0x01
+#define _I2C_ADDRESS                    0x24
+#define _I2C_CHANNEL                    1
 
 static int fd = 0;
 
+/**************************************************************************
+ * Start of SPI
+ **************************************************************************/
 uint8_t reverse_bit(uint8_t num) {
     uint8_t result = 0;
     for (uint8_t i = 0; i < 8; i++) {
@@ -145,6 +155,33 @@ int PN532_SPI_Wakeup(void) {
     return PN532_STATUS_OK;
 }
 
+void PN532_SPI_Init(PN532* pn532) {
+    // init the pn532 functions
+    pn532->reset = PN532_Reset;
+    pn532->read_data = PN532_SPI_ReadData;
+    pn532->write_data = PN532_SPI_WriteData;
+    pn532->wait_ready = PN532_SPI_WaitReady;
+    pn532->wakeup = PN532_SPI_Wakeup;
+    pn532->log = PN532_Log;
+    // SPI setup
+    if (wiringPiSetupGpio() < 0) {  // using Broadcom GPIO pin mapping
+        return;
+    }
+    pinMode(_NSS_PIN, OUTPUT);
+    pinMode(_RESET_PIN, OUTPUT);
+    wiringPiSPISetup(_SPI_CHANNEL, 1000000);
+    // hardware reset
+    pn532->reset();
+    // hardware wakeup
+    pn532->wakeup();
+}
+
+/**************************************************************************
+ * End of SPI
+ **************************************************************************/
+/**************************************************************************
+ * Start of UART
+ **************************************************************************/
 int PN532_UART_ReadData(uint8_t* data, uint16_t count) {
     int index = 0;
     int length = count; // length of frame (data[3]) might be shorter than the count
@@ -210,27 +247,6 @@ int PN532_UART_Wakeup(void) {
     return PN532_STATUS_OK;
 }
 
-void PN532_SPI_Init(PN532* pn532) {
-    // init the pn532 functions
-    pn532->reset = PN532_Reset;
-    pn532->read_data = PN532_SPI_ReadData;
-    pn532->write_data = PN532_SPI_WriteData;
-    pn532->wait_ready = PN532_SPI_WaitReady;
-    pn532->wakeup = PN532_SPI_Wakeup;
-    pn532->log = PN532_Log;
-    // SPI setup
-    if (wiringPiSetupGpio() < 0) {  // using Broadcom GPIO pin mapping
-        return;
-    }
-    pinMode(_NSS_PIN, OUTPUT);
-    pinMode(_RESET_PIN, OUTPUT);
-    wiringPiSPISetup(_SPI_CHANNEL, 1000000);
-    // hardware reset
-    pn532->reset();
-    // hardware wakeup
-    pn532->wakeup();
-}
-
 void PN532_UART_Init(PN532* pn532) {
     // init the pn532 functions
     pn532->reset = PN532_Reset;
@@ -245,8 +261,98 @@ void PN532_UART_Init(PN532* pn532) {
         fprintf(stderr, "Unable to open serial device: %s\n", strerror(errno));
         return;
     }
+    pinMode(_RESET_PIN, OUTPUT);
     // hardware reset
     pn532->reset();
     // hardware wakeup
     pn532->wakeup();
 }
+/**************************************************************************
+ * End of UART
+ **************************************************************************/
+/**************************************************************************
+ * Start of I2C
+ **************************************************************************/
+int PN532_I2C_ReadData(uint8_t* data, uint16_t count) {
+    uint8_t status[] = {0x00};
+    uint8_t frame[count + 1];
+    read(fd, status, sizeof(status));
+    if (status[0] != _I2C_READY) {
+        return PN532_STATUS_ERROR;
+    }
+    read(fd, frame, count + 1);
+    for (uint8_t i = 0; i < count; i++) {
+        data[i] = frame[i + 1];
+    }
+    return PN532_STATUS_OK;
+}
+
+int PN532_I2C_WriteData(uint8_t *data, uint16_t count) {
+    write(fd, data, count);
+    return PN532_STATUS_OK;
+}
+
+bool PN532_I2C_WaitReady(uint32_t timeout) {
+    uint8_t status[] = {0x00};
+    struct timespec timenow;
+    struct timespec timestart;
+    clock_gettime(CLOCK_MONOTONIC, &timestart);
+    while (1) {
+        read(fd, status, sizeof(status));
+        if (status[0] == _I2C_READY) {
+            return true;
+        } else {
+            delay(5);
+        }
+        clock_gettime(CLOCK_MONOTONIC, &timenow);
+        if ((timenow.tv_sec - timestart.tv_sec) * 1000 + \
+            (timenow.tv_nsec - timestart.tv_nsec) / 1000000 > timeout) {
+            break;
+        }
+    }
+    // Time out!
+    return false;
+}
+
+int PN532_I2C_Wakeup(void) {
+    digitalWrite(_RESET_PIN, HIGH);
+    delay(100);
+    digitalWrite(_RESET_PIN, LOW);
+    delay(100);
+    digitalWrite(_RESET_PIN, HIGH);
+    delay(500);
+    return PN532_STATUS_OK;
+}
+
+void PN532_I2C_Init(PN532* pn532) {
+    // init the pn532 functions
+    pn532->reset = PN532_Reset;
+    pn532->read_data = PN532_I2C_ReadData;
+    pn532->write_data = PN532_I2C_WriteData;
+    pn532->wait_ready = PN532_I2C_WaitReady;
+    pn532->wakeup = PN532_I2C_Wakeup;
+    pn532->log = PN532_Log;
+    char devname[20];
+    snprintf(devname, 19, "/dev/i2c-%d", _I2C_CHANNEL);
+    fd = open(devname, O_RDWR);
+    if (fd < 0) {
+        fprintf(stderr, "Unable to open i2c device: %s\n", strerror(errno));
+        return;
+    }
+    if (ioctl(fd, I2C_SLAVE, _I2C_ADDRESS) < 0) {
+        fprintf(stderr, "Unable to open i2c device: %s\n", strerror(errno));
+        return;
+    }
+    if (wiringPiSetupGpio() < 0) {  // using Broadcom GPIO pin mapping
+        return;
+    }
+    pinMode(_REQ_PIN, OUTPUT);
+    pinMode(_RESET_PIN, OUTPUT);
+    // hardware reset
+    pn532->reset();
+    // hardware wakeup
+    pn532->wakeup();
+}
+/**************************************************************************
+ * End of I2C
+ **************************************************************************/
