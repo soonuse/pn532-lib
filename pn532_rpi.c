@@ -39,15 +39,15 @@
 #include "wiringSerial.h"
 #include "pn532_rpi.h"
 
+#define _RESET_PIN                      20
+#define _REQ_PIN                        16
+
 #define _SPI_STATREAD                   0x02
 #define _SPI_DATAWRITE                  0x01
 #define _SPI_DATAREAD                   0x03
 #define _SPI_READY                      0x01
-
 #define _SPI_CHANNEL                    0
 #define _NSS_PIN                        4
-#define _RESET_PIN                      20
-#define _REQ_PIN                        16
 
 #define _I2C_READY                      0x01
 #define _I2C_ADDRESS                    0x24
