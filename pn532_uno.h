@@ -29,12 +29,19 @@
 
 #include "pn532.h"
 
-void PN532_Init(PN532* dev);
 int PN532_Reset(void);
-int PN532_ReadData(uint8_t* data, uint16_t count);
-int PN532_WriteData(uint8_t *data, uint16_t count);
-bool PN532_WaitReady(uint32_t timeout);
-int PN532_Wakeup(void);
 void PN532_Log(const char* log);
+
+void PN532_SPI_Init(PN532* dev);
+int PN532_SPI_ReadData(uint8_t* data, uint16_t count);
+int PN532_SPI_WriteData(uint8_t *data, uint16_t count);
+bool PN532_SPI_WaitReady(uint32_t timeout);
+int PN532_SPI_Wakeup(void);
+
+void PN532_I2C_Init(PN532* dev);
+int PN532_I2C_ReadData(uint8_t* data, uint16_t count);
+int PN532_I2C_WriteData(uint8_t *data, uint16_t count);
+bool PN532_I2C_WaitReady(uint32_t timeout);
+int PN532_I2C_Wakeup(void);
 
 #endif  /* PN532_UNO */
