@@ -11,7 +11,7 @@ PN532 pn532;
 
 void setup() {
   // put your setup code here, to run once:
-  PN532_Init(&pn532);
+  PN532_I2C_Init(&pn532);
   Serial.println("Hello!");
   if (PN532_GetFirmwareVersion(&pn532, buff) == PN532_STATUS_OK) {
     Serial.print("Found PN532 with firmware version: ");
@@ -19,6 +19,8 @@ void setup() {
     Serial.print(".");
     Serial.println(buff[2], DEC);
     Serial.println("Waiting for RFID/NFC card...");
+  } else {
+    return;
   }
   PN532_SamConfiguration(&pn532);
   while (1)
