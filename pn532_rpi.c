@@ -56,6 +56,26 @@
 static int fd = 0;
 
 /**************************************************************************
+ * Start of Common
+ **************************************************************************/
+int PN532_Reset(void) {
+    digitalWrite(_RESET_PIN, HIGH);
+    delay(100);
+    digitalWrite(_RESET_PIN, LOW);
+    delay(500);
+    digitalWrite(_RESET_PIN, HIGH);
+    delay(100);
+    return PN532_STATUS_OK;
+}
+
+void PN532_Log(const char* log) {
+    printf(log);
+    printf("\r\n");
+}
+/**************************************************************************
+ * End of Common
+ **************************************************************************/
+/**************************************************************************
  * Start of SPI
  **************************************************************************/
 uint8_t reverse_bit(uint8_t num) {
@@ -84,21 +104,6 @@ void rpi_spi_rw(uint8_t* data, uint8_t count) {
 #endif
     delay(1);
     digitalWrite(_NSS_PIN, HIGH);
-}
-
-int PN532_Reset(void) {
-    digitalWrite(_RESET_PIN, HIGH);
-    delay(100);
-    digitalWrite(_RESET_PIN, LOW);
-    delay(500);
-    digitalWrite(_RESET_PIN, HIGH);
-    delay(100);
-    return PN532_STATUS_OK;
-}
-
-void PN532_Log(const char* log) {
-    printf(log);
-    printf("\r\n");
 }
 
 int PN532_SPI_ReadData(uint8_t* data, uint16_t count) {
@@ -315,11 +320,11 @@ bool PN532_I2C_WaitReady(uint32_t timeout) {
 }
 
 int PN532_I2C_Wakeup(void) {
-    digitalWrite(_RESET_PIN, HIGH);
+    digitalWrite(_REQ_PIN, HIGH);
     delay(100);
-    digitalWrite(_RESET_PIN, LOW);
+    digitalWrite(_REQ_PIN, LOW);
     delay(100);
-    digitalWrite(_RESET_PIN, HIGH);
+    digitalWrite(_REQ_PIN, HIGH);
     delay(500);
     return PN532_STATUS_OK;
 }
