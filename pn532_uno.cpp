@@ -35,12 +35,12 @@
 
 #include "pn532_uno.h"
 
-#define PN532_SPI_STATREAD                   (0x02)
-#define PN532_SPI_DATAWRITE                  (0x01)
-#define PN532_SPI_DATAREAD                   (0x03)
-#define PN532_SPI_READY                      (0x01)
+#define PN532_SPI_STATREAD              (0x02)
+#define PN532_SPI_DATAWRITE             (0x01)
+#define PN532_SPI_DATAREAD              (0x03)
+#define PN532_SPI_READY                 (0x01)
 
-#define PN532_SPI_TIMEOUT                    (10)
+#define PN532_SPI_TIMEOUT               (10)
 // This indicates if the bits read/write should be reversed
 #define PN532_SPI_HARDWARE_LSB
 
@@ -48,8 +48,8 @@
 #define PN532_REQ                       (2)
 #define PN532_RST                       (3)
 
-#define PN532_I2C_READY                      (0x01)
-#define PN532_I2C_ADDRESS                    (0x48 >> 1)
+#define PN532_I2C_READY                 (0x01)
+#define PN532_I2C_ADDRESS               (0x48 >> 1)
 
 
 /**************************************************************************
