@@ -56,6 +56,12 @@
  * Reset and Log implements
  **************************************************************************/
 int PN532_Reset(void) {
+    digitalWrite(PN532_RST, HIGH);
+    delay(100);
+    digitalWrite(PN532_RST, LOW);
+    delay(500);
+    digitalWrite(PN532_RST, HIGH);
+    delay(100);
     return PN532_STATUS_OK;
 }
 
@@ -82,10 +88,6 @@ void spi_rw(uint8_t* data, uint8_t count) {
     digitalWrite(PN532_NSS, LOW);
     SPI.transfer(data, count);
     digitalWrite(PN532_NSS, HIGH);
-}
-
-int PN532_SPI_Reset(void) {
-    // TODO: in most cases, reset pin is no need for SPI
 }
 
 int PN532_SPI_ReadData(uint8_t* data, uint16_t count) {
