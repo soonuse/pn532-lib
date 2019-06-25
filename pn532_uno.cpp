@@ -60,9 +60,7 @@ uint8_t reverse_bit(uint8_t num) {
 
 void spi_rw(uint8_t* data, uint8_t count) {
     digitalWrite(PN532_SS, LOW);
-    delay(2);
     SPI.transfer(data, count);
-    delay(2);
     digitalWrite(PN532_SS, HIGH);
 }
 
