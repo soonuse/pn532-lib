@@ -50,7 +50,7 @@
 #define _NSS_PIN                        (4)
 
 #define _I2C_READY                      (0x01)
-#define _I2C_ADDRESS                    (0x24)
+#define _I2C_ADDRESS                    (0x48 >> 1)
 #define _I2C_CHANNEL                    (1)
 
 static int fd = 0;
