@@ -115,6 +115,9 @@ extern "C" {
 #define MIFARE_KEY_LENGTH                   (6)
 #define MIFARE_BLOCK_LENGTH                 (16)
 
+// NTAG2xx Commands
+#define NTAG2XX_BLOCK_LENGTH                (4)
+
 // Prefixes for NDEF Records (to identify record type)
 #define NDEF_URIPREFIX_NONE                 (0x00)
 #define NDEF_URIPREFIX_HTTP_WWWDOT          (0x01)
@@ -257,6 +260,8 @@ int PN532_ReadPassiveTarget(PN532* pn532, uint8_t* response, uint8_t card_baud, 
 int PN532_MifareClassicAuthenticateBlock(PN532* pn532, uint8_t* uid, uint8_t uid_length, uint16_t block_number, uint16_t key_number, uint8_t* key);
 int PN532_MifareClassicReadBlock(PN532* pn532, uint8_t* response, uint16_t block_number);
 int PN532_MifareClassicWriteBlock(PN532* pn532, uint8_t* data, uint16_t block_number);
+int PN532_Ntag2xxReadBlock(PN532* pn532, uint8_t* response, uint16_t block_number);
+int PN532_Ntag2xxWriteBlock(PN532* pn532, uint8_t* data, uint16_t block_number);
 int PN532_ReadGpio(PN532* pn532, uint8_t* pins_state);
 bool PN532_ReadGpioP(PN532* pn532, uint8_t pin_number);
 bool PN532_ReadGpioI(PN532* pn532, uint8_t pin_number);
