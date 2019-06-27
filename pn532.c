@@ -327,12 +327,60 @@ int PN532_MifareClassicReadBlock(PN532* pn532, uint8_t* response, uint16_t block
   * @retval: PN532 error code.
   */
 int PN532_MifareClassicWriteBlock(PN532* pn532, uint8_t* data, uint16_t block_number) {
-    uint8_t params[19];
+    uint8_t params[MIFARE_BLOCK_LENGTH + 3];
     uint8_t response[1];
     params[0] = 0x01;  // Max card numbers
     params[1] = MIFARE_CMD_WRITE;
     params[2] = block_number & 0xFF;
-    for (uint8_t i = 0; i < 16; i++) {
+    for (uint8_t i = 0; i < MIFARE_BLOCK_LENGTH; i++) {
+        params[3 + i] = data[i];
+    }
+    PN532_CallFunction(pn532, PN532_COMMAND_INDATAEXCHANGE, response,
+                       sizeof(response), params, sizeof(params), PN532_DEFAULT_TIMEOUT);
+    return response[0];
+}
+
+/**
+  * @brief: Read a block of data from the card. Block number should be the block
+  *     to read.
+  * @param response: buffer of length 4 returned if the block is successfully read.
+  * @param block_number: specify a block to read.
+  * @retval: PN532 error code.
+  */
+int PN532_Ntag2xxReadBlock(PN532* pn532, uint8_t* response, uint16_t block_number) {
+    uint8_t params[] = {0x01, MIFARE_CMD_READ, block_number & 0xFF};
+    // The response length of NTAG2xx is same as Mifare's
+    uint8_t buff[MIFARE_BLOCK_LENGTH + 1];
+    // Send InDataExchange request to read block of MiFare data.
+    PN532_CallFunction(pn532, PN532_COMMAND_INDATAEXCHANGE, buff, sizeof(buff),
+                       params, sizeof(params), PN532_DEFAULT_TIMEOUT);
+    // Check first response is 0x00 to show success.
+    if (buff[0] != PN532_ERROR_NONE) {
+        return buff[0];
+    }
+    // Although the response length of NTAG2xx is same as Mifare's,
+    // only the first 4 bytes are available
+    for (uint8_t i = 0; i < NTAG2XX_BLOCK_LENGTH; i++) {
+        response[i] = buff[i + 1];
+    }
+    return buff[0];
+}
+
+/**
+  * @brief: Write a block of data to the card.  Block number should be the block
+  *     to write and data should be a byte array of length 4 with the data to
+  *     write.
+  * @param data: data to write.
+  * @param block_number: specify a block to write.
+  * @retval: PN532 error code.
+  */
+int PN532_Ntag2xxWriteBlock(PN532* pn532, uint8_t* data, uint16_t block_number) {
+    uint8_t params[NTAG2XX_BLOCK_LENGTH + 3];
+    uint8_t response[1];
+    params[0] = 0x01;  // Max card numbers
+    params[1] = MIFARE_ULTRALIGHT_CMD_WRITE;
+    params[2] = block_number & 0xFF;
+    for (uint8_t i = 0; i < NTAG2XX_BLOCK_LENGTH; i++) {
         params[3 + i] = data[i];
     }
     PN532_CallFunction(pn532, PN532_COMMAND_INDATAEXCHANGE, response,
@@ -384,7 +432,7 @@ bool PN532_ReadGpioI(PN532* pn532, uint8_t pin_number) {
     uint8_t pins_state[3];
     PN532_CallFunction(pn532, PN532_COMMAND_READGPIO, pins_state,
                        sizeof(pins_state), NULL, 0, PN532_DEFAULT_TIMEOUT);
-    if ((pin_number >= 0) && (pin_number <= 7)) {
+    if (pin_number <= 7) {
         return (pins_state[2] >> pin_number) & 1 ? true : false;
     }
     return false;
