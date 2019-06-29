@@ -29,6 +29,9 @@ void loop() {
   } else {
     Serial.print("Found card with UID: ");
     for (uint8_t i = 0; i < uid_len; i++) {
+      if (uid[i] <= 0xF) {
+        Serial.print("0");
+      }
       Serial.print(uid[i], HEX);
       Serial.print(" ");
     }
