@@ -1,3 +1,7 @@
+/**
+  * This example shows connecting to the PN532 and writing an Mifare Classic
+  * type RFID tag
+  */
 #include <stdio.h>
 #include <stdint.h>
 #include <time.h>

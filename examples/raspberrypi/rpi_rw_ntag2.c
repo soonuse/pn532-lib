@@ -1,3 +1,7 @@
+/**
+  * This example shows connecting to the PN532 and writing an NTAG215
+  * type RFID tag
+  */
 #include <stdio.h>
 #include <stdint.h>
 #include <time.h>
