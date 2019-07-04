@@ -19,7 +19,7 @@ int main(int argc, char** argv) {
     //PN532_WriteGpioP(&pn532, 32, true);   // Reserved, don't change this
     PN532_WriteGpioP(&pn532, 33, false);
     //PN532_WriteGpioP(&pn532, 34, true);   // Reserved, don't change this
-    PN532_WriteGpioP(&pn532, 35, false);    // Always true
+    PN532_WriteGpioP(&pn532, 35, false);
     PN532_WriteGpioP(&pn532, 71, false);    // Always HIGH in SPI mode
     PN532_WriteGpioP(&pn532, 72, true);     // Always HIGH in SPI mode
     for (uint8_t i = 30; i < 36; i++) {
