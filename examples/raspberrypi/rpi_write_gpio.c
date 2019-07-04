@@ -16,12 +16,12 @@ int main(int argc, char** argv) {
     printf("Found PN532 with firmware version: %d.%d\r\n", buff[1], buff[2]);
     PN532_WriteGpioP(&pn532, 30, true);
     PN532_WriteGpioP(&pn532, 31, false);
-    PN532_WriteGpioP(&pn532, 32, true); // Must be true or else init again
+    //PN532_WriteGpioP(&pn532, 32, true);   // Reserved, don't change this
     PN532_WriteGpioP(&pn532, 33, false);
-    PN532_WriteGpioP(&pn532, 34, true); // Always true
-    PN532_WriteGpioP(&pn532, 35, false); // Always true
-    PN532_WriteGpioP(&pn532, 71, false);
-    PN532_WriteGpioP(&pn532, 72, true);
+    //PN532_WriteGpioP(&pn532, 34, true);   // Reserved, don't change this
+    PN532_WriteGpioP(&pn532, 35, false);    // Always true
+    PN532_WriteGpioP(&pn532, 71, false);    // Always HIGH in SPI mode
+    PN532_WriteGpioP(&pn532, 72, true);     // Always HIGH in SPI mode
     for (uint8_t i = 30; i < 36; i++) {
         pin_state = PN532_ReadGpioP(&pn532, i);
         printf("Pin P%d: %d\r\n", i, pin_state);
