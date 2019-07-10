@@ -8,8 +8,8 @@ int main(int argc, char** argv) {
     uint8_t buff[3];
     bool pin_state = false;
     PN532 pn532;
-    PN532_SPI_Init(&pn532);
-    //PN532_I2C_Init(&pn532);
+    //PN532_SPI_Init(&pn532);
+    PN532_I2C_Init(&pn532);
     //PN532_UART_Init(&pn532);
     if (PN532_GetFirmwareVersion(&pn532, buff) != PN532_STATUS_OK) {
         printf("PN532 not found\r\n");
