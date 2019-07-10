@@ -266,6 +266,9 @@ void PN532_UART_Init(PN532* pn532) {
         fprintf(stderr, "Unable to open serial device: %s\n", strerror(errno));
         return;
     }
+    if (wiringPiSetupGpio() < 0) {  // using Broadcom GPIO pin mapping
+        return;
+    }
     pinMode(_RESET_PIN, OUTPUT);
     // hardware reset
     pn532->reset();
