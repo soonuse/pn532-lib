@@ -109,17 +109,15 @@ examples\arduino\uno_get_uid\ uno_get_uid.ino
 
 ### Using I2C
 1.  Set I0I1:
--   I0 --> LOW
--   I1 --> HIGH
+-   I0 --> HIGH
+-   I1 --> LOW
 2.  Hardware Connection:
--   SCK --> Arduino D13
--   MISO --> ArduinoD12
--   MOSI --> Arduino D11
--   NSS --> Arduino D4
+- 	SCL --> ArduinoA5
+- 	SDA --> ArduinoA4
 3.  Open examples\arduino\uno_get_uid\ uno_get_uid.ino with Arduino IDE then change the PN532 Init lines for SPI:
 ```
-PN532_SPI_Init(&pn532);
-//PN532_I2C_Init(&pn532);
+//PN532_SPI_Init(&pn532);
+PN532_I2C_Init(&pn532);
 ```
 4.  Compile and upload the demo to your Arduino UNO board:
 ```
