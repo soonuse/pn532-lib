@@ -1,6 +1,8 @@
 # pn532-lib
 PN532 NFC Library for Raspberry Pi, STM32, Arduino
 
+![image](https://www.electroschematics.com/wp-content/uploads/2019/04/2-PN532-Module-V3_Closeup-550x252.jpg)
+
 # How to use?
 
 ## For Raspberry Pi
