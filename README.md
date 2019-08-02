@@ -1,7 +1,7 @@
 # pn532-lib
 PN532 NFC Library for Raspberry Pi, STM32, Arduino
 
-![image](https://www.elechouse.com/elechouse/images/product/PN532_module_V3/PN532-7.jpg)
+![image](http://www.waveshare.net/photo/accBoard/PN532-NFC-HAT/PN532-NFC-HAT-1.jpg)
 
 # How to use?
 
