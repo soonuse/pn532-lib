@@ -116,14 +116,14 @@ examples\arduino\uno_get_uid\ uno_get_uid.ino
 2.  Hardware Connection:
 - 	SCL --> ArduinoA5
 - 	SDA --> ArduinoA4
-3.  Open examples\arduino\uno_get_uid\ uno_get_uid.ino with Arduino IDE then change the PN532 Init lines for SPI:
+3.  Open examples\arduino\uno_get_uid\uno_get_uid.ino with Arduino IDE then change the PN532 Init lines for I2C:
 ```
 //PN532_SPI_Init(&pn532);
 PN532_I2C_Init(&pn532);
 ```
 4.  Compile and upload the demo to your Arduino UNO board:
 ```
-examples\arduino\uno_get_uid\ uno_get_uid.ino
+examples\arduino\uno_get_uid\uno_get_uid.ino
 ```
 
 ## For STM32
