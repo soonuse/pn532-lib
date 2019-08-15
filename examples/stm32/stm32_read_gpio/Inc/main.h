@@ -60,6 +60,10 @@ void Error_Handler(void);
 /* Private defines -----------------------------------------------------------*/
 #define SS_Pin GPIO_PIN_4
 #define SS_GPIO_Port GPIOA
+#define PN532_RST_Pin GPIO_PIN_0
+#define PN532_RST_GPIO_Port GPIOB
+#define PN532_REQ_Pin GPIO_PIN_1
+#define PN532_REQ_GPIO_Port GPIOB
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */
