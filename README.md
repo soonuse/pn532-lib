@@ -43,7 +43,7 @@ cd examples/raspberrypi && make
 Optional: 
 -   P32 --> D16 (for hardware request)
 -   RSTPDN --> D20 (for hardware reset)
-3.  Modify the PN532 Init lines for SPI in `example/raspberrypi/rpi_get_uid.c`:
+3.  Modify the PN532 Init lines for I2C in `example/raspberrypi/rpi_get_uid.c`:
 ```
 //PN532_SPI_Init(&pn532);
 PN532_I2C_Init(&pn532);
@@ -67,7 +67,7 @@ cd examples/raspberrypi && make
 -   NSS/SCL/RX --> TX
 Optional: 
 -   RSTPDN --> D20 (for hardware reset)
-3.  Modify the PN532 Init lines for SPI in `example/raspberrypi/rpi_get_uid.c`:
+3.  Modify the PN532 Init lines for UART in `example/raspberrypi/rpi_get_uid.c`:
 ```
 //PN532_SPI_Init(&pn532);
 //PN532_I2C_Init(&pn532);
