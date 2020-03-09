@@ -264,7 +264,6 @@ int PN532_ReadPassiveTarget(
   * @param block_number: The block to authenticate.
   * @param key_number: The key type (like MIFARE_CMD_AUTH_A or MIFARE_CMD_AUTH_B).
   * @param key: A byte array with the key data.
-  * @retval: true if the block was authenticated, or false if not authenticated.
   * @retval: PN532 error code.
   */
 int PN532_MifareClassicAuthenticateBlock(
