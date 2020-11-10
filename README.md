@@ -15,7 +15,7 @@ PN532 NFC Library for Raspberry Pi, STM32, Arduino
 -   SCK --> SCK
 -   MISO --> MISO
 -   MOSI/SDA/TX --> MOSI
--   NSS/SCL/RX --> D4 (User the pin D4 on your Pi for NSS)
+-   NSS/SCL/RX --> D4 (GPIO 4 of BCM pinout)
 Optional: 
 -   RSTPDN --> D20 (for hardware reset)
 3.  Modify the PN532 Init lines for SPI in `example/raspberrypi/rpi_get_uid.c`:
